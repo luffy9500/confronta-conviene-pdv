@@ -1,13 +1,60 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import { uploadCoppie, getKPINetwork, getCoppieCount } from './actions'
 
 type Tab = 'kpi' | 'carica'
+
+/* ─── Design tokens ─── */
+const navy       = '#0f2236'
+const navyLight  = '#1a3a5c'
+const red        = '#E2001A'
+const green      = '#22c55e'
+const greenBg    = '#f0fdf4'
+const greenBorder = '#bbf7d0'
+const greenDark  = '#065f46'
+const amberBg    = '#fffbeb'
+const amberBorder = '#fde68a'
+const amberDark  = '#92400e'
+const border     = '#e2e8f0'
+const bg         = '#f1f5f9'
+const text       = '#0f172a'
+const muted      = '#64748b'
+const subtle     = '#94a3b8'
+
+/* ─── ProgressBar ─── */
+function ProgressBar({ pct, color = green, height = 6 }: { pct: number; color?: string; height?: number }) {
+  return (
+    <div style={{ width: '100%', height, background: '#e2e8f0', borderRadius: height, overflow: 'hidden' }}>
+      <div style={{ height, width: `${pct}%`, background: color, borderRadius: height, transition: 'width 0.5s ease' }} />
+    </div>
+  )
+}
+
+/* ─── KpiCard ─── */
+function KpiCard({
+  label, value, bgColor, textColor, borderColor,
+}: {
+  label: string; value: string | number
+  bgColor: string; textColor: string; borderColor: string
+}) {
+  return (
+    <div style={{
+      background: bgColor,
+      borderRadius: 12,
+      border: `1.5px solid ${borderColor}`,
+      padding: '16px 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+    }}>
+      <div style={{ fontSize: 28, fontWeight: 900, color: textColor, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 11, color: textColor, opacity: 0.7 }}>{label}</div>
+    </div>
+  )
+}
 
 export default function MasterCCPage() {
   const router = useRouter()
@@ -52,162 +99,248 @@ export default function MasterCCPage() {
     reader.readAsArrayBuffer(uploadFile)
   }
 
+  const network = kpiData?.network
+  const pdvList: any[] = kpiData?.pdvList
+    ? [...kpiData.pdvList].sort((a: any, b: any) => b.percentage - a.percentage)
+    : []
+
+  const pctColor = (p: number) => p >= 80 ? green : p >= 50 ? '#f59e0b' : red
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm p-6 border-b">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-600">KPI Coppie</h1>
-            <p className="text-gray-600 mt-1">{coppieCount} coppie nel sistema</p>
+    <div style={{ minHeight: '100vh', background: bg }}>
+      {/* ── HEADER (navy) ── */}
+      <div style={{ background: navy }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 24px 0' }}>
+
+          {/* Top row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              {/* Brand label */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: red }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  KPI Coppie
+                </span>
+              </div>
+              {/* Title */}
+              <span style={{ fontSize: 22, fontWeight: 900, color: '#fff' }}>Dashboard Rete</span>
+            </div>
+
+            {/* Back button */}
+            <button
+              onClick={() => router.push('/protected/home')}
+              style={{ fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 100, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer' }}>
+              ← Menu
+            </button>
           </div>
-          <Button onClick={() => router.push('/protected/home')} variant="outline">← Torna al menu</Button>
-        </div>
-      </header>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex border-b mb-6">
-          <button
-            onClick={() => setTab('kpi')}
-            className={`px-5 py-3 text-sm font-bold transition ${tab === 'kpi' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
-          >
-            KPI Network
-          </button>
-          <button
-            onClick={() => setTab('carica')}
-            className={`px-5 py-3 text-sm font-bold transition ${tab === 'carica' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
-          >
-            Carica Excel
-          </button>
+          {/* Tab bar (inside dark header) */}
+          <div style={{ display: 'flex', gap: 2 }}>
+            {([['kpi', 'KPI Network'], ['carica', 'Carica Excel']] as [Tab, string][]).map(([t, label]) => (
+              <button key={t} type="button" onClick={() => setTab(t)}
+                style={{
+                  padding: '10px 20px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: tab === t ? `2px solid ${red}` : '2px solid transparent',
+                  color: tab === t ? '#fff' : 'rgba(255,255,255,0.4)',
+                  transition: 'color 0.15s',
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {tab === 'kpi' && (
-          <div className="space-y-6">
-            {kpiData?.network ? (
-              <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="p-6 bg-blue-50 border-blue-200">
-                    <div className="text-3xl font-bold text-blue-600">{kpiData.network.totalCoppie}</div>
-                    <div className="text-sm text-gray-600 mt-1">Coppie Totali</div>
-                  </Card>
-                  <Card className="p-6 bg-green-50 border-green-200">
-                    <div className="text-3xl font-bold text-green-600">{kpiData.network.totalDone}</div>
-                    <div className="text-sm text-gray-600 mt-1">Completate</div>
-                  </Card>
-                  <Card className="p-6 bg-amber-50 border-amber-200">
-                    <div className="text-3xl font-bold text-amber-600">{kpiData.network.totalTodo}</div>
-                    <div className="text-sm text-gray-600 mt-1">In Sospeso</div>
-                  </Card>
-                  <Card className="p-6 bg-purple-50 border-purple-200">
-                    <div className="text-3xl font-bold text-purple-600">{kpiData.network.networkPercentage}%</div>
-                    <div className="text-sm text-gray-600 mt-1">Avanzamento Rete</div>
-                  </Card>
+      {/* ── KPI TAB ── */}
+      {tab === 'kpi' && (
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
+          {network ? (
+            <>
+              {/* Hero row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 20 }}>
+
+                {/* Left: big percentage card */}
+                <div style={{
+                  background: '#fff',
+                  borderRadius: 16,
+                  border: `1.5px solid ${border}`,
+                  padding: 24,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                    Avanzamento Rete
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginBottom: 16 }}>
+                    <span style={{ fontSize: 64, fontWeight: 900, color: text, letterSpacing: '-2px', lineHeight: 1 }}>
+                      {network.networkPercentage}
+                    </span>
+                    <span style={{ fontSize: 32, color: subtle }}>%</span>
+                  </div>
+                  <div style={{ width: '100%' }}>
+                    <ProgressBar pct={network.networkPercentage} color={green} height={8} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+                    <span style={{ fontSize: 11, color: muted }}>{network.totalDone} completate</span>
+                    <span style={{ fontSize: 11, color: muted }}>{network.totalTodo} in sospeso</span>
+                  </div>
                 </div>
 
-                <Card className="p-6">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-bold">Avanzamento Rete</h3>
-                    <span className="text-sm font-bold text-purple-600">{kpiData.network.networkPercentage}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-green-400 to-green-600 h-full transition-all duration-500"
-                      style={{ width: `${kpiData.network.networkPercentage}%` }}
-                    />
-                  </div>
-                </Card>
+                {/* Right: 3×2 KPI grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  <KpiCard label="PDV Attivi"     value={network.pdvCount}        bgColor={navy}     textColor="#fff"      borderColor="transparent" />
+                  <KpiCard label="Completati"     value={network.totalDone}        bgColor={greenBg}  textColor={greenDark}  borderColor={greenBorder} />
+                  <KpiCard label="In corso"       value={network.totalTodo}        bgColor={amberBg}  textColor={amberDark}  borderColor={amberBorder} />
+                  <KpiCard label="Coppie totali"  value={network.totalCoppie ?? 0} bgColor="#f8fafc"  textColor={text}       borderColor={border} />
+                  <KpiCard label="Completate"     value={network.totalDone}        bgColor={greenBg}  textColor={greenDark}  borderColor={greenBorder} />
+                  <KpiCard label="In sospeso"     value={network.totalTodo}        bgColor={amberBg}  textColor={amberDark}  borderColor={amberBorder} />
+                </div>
+              </div>
 
-                {kpiData.pdvList?.length > 0 && (
-                  <Card className="overflow-hidden">
-                    <div className="p-6 border-b">
-                      <h3 className="font-bold text-lg">Dettaglio per PDV</h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-6 py-3 text-left font-bold">Codice</th>
-                            <th className="px-6 py-3 text-left font-bold">PDV</th>
-                            <th className="px-6 py-3 text-center font-bold">Fatte</th>
-                            <th className="px-6 py-3 text-center font-bold">Mancanti</th>
-                            <th className="px-6 py-3 text-center font-bold">Avanzamento</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {kpiData.pdvList.map((pdv: any) => (
-                            <tr key={pdv.pdvId} className="border-b hover:bg-gray-50">
-                              <td className="px-6 py-4 font-mono text-gray-500 text-xs">{pdv.pdvCode}</td>
-                              <td className="px-6 py-4 font-medium">{pdv.pdvName}</td>
-                              <td className="px-6 py-4 text-center">
-                                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">{pdv.done}</span>
+              {/* PDV Table */}
+              {pdvList.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: 16, border: `1.5px solid ${border}`, overflow: 'hidden' }}>
+                  {/* Table header row */}
+                  <div style={{ padding: '16px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: text }}>Dettaglio per PDV</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: '#f1f5f9', color: muted, border: `1px solid ${border}` }}>
+                      {pdvList.length} punti vendita
+                    </span>
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc' }}>
+                          {['Codice', 'PDV', 'Fatte', 'Mancanti', 'Avanzamento'].map(h => (
+                            <th key={h} style={{ padding: '10px 16px', textAlign: h === 'Avanzamento' || h === 'Fatte' || h === 'Mancanti' ? 'center' : 'left', fontWeight: 700, color: muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: `1px solid ${border}` }}>
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pdvList.map((pdv: any) => {
+                          const pc = pdv.percentage
+                          const barColor = pctColor(pc)
+                          return (
+                            <tr key={pdv.pdvId} style={{ borderBottom: `1px solid ${border}` }}>
+                              <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: subtle, fontSize: 11 }}>{pdv.pdvCode}</td>
+                              <td style={{ padding: '12px 16px', fontWeight: 600, color: text }}>{pdv.pdvName}</td>
+                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                <span style={{ background: greenBg, color: greenDark, border: `1px solid ${greenBorder}`, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100 }}>
+                                  {pdv.done}
+                                </span>
                               </td>
-                              <td className="px-6 py-4 text-center">
-                                <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">{pdv.todo}</span>
+                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                <span style={{
+                                  fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100,
+                                  ...(pdv.todo > 0
+                                    ? { background: amberBg, color: amberDark, border: `1px solid ${amberBorder}` }
+                                    : { background: greenBg, color: greenDark, border: `1px solid ${greenBorder}` }),
+                                }}>
+                                  {pdv.todo}
+                                </span>
                               </td>
-                              <td className="px-6 py-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${pdv.percentage}%` }} />
+                              <td style={{ padding: '12px 16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
+                                  <div style={{ width: 80, height: 6, background: '#e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${pc}%`, background: barColor, borderRadius: 6, transition: 'width 0.4s ease' }} />
                                   </div>
-                                  <span className="text-xs font-bold w-8">{pdv.percentage}%</span>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: barColor, minWidth: 32, textAlign: 'right' }}>{pc}%</span>
                                 </div>
                               </td>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                )}
-
-                <div className="flex justify-center">
-                  <Button onClick={loadData} variant="outline">Aggiorna KPI</Button>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-20 text-gray-500">
-                <p className="text-lg">Nessuna coppia caricata.</p>
-                <p className="text-sm mt-2">Vai su <strong>Carica Excel</strong> per iniziare.</p>
-              </div>
-            )}
-          </div>
-        )}
+              )}
 
-        {tab === 'carica' && (
-          <Card className="p-8 max-w-xl mx-auto">
-            <h2 className="text-xl font-bold mb-2">Carica coppie da Excel</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Il file deve avere le colonne: <span className="font-mono text-xs">numero, area, ean_coop, name_coop, price_coop, ean_idm, name_idm, price_idm, discount_pct</span>
-            </p>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center mb-6 cursor-pointer hover:border-blue-400 transition"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                className="hidden"
-                id="file-upload"
-              />
-              <div className="text-4xl mb-3">📁</div>
-              <div className="font-semibold text-gray-700">{uploadFile ? uploadFile.name : 'Clicca per selezionare'}</div>
-              <div className="text-sm text-gray-400 mt-1">.xlsx · .xls · .csv</div>
+              {/* Refresh button */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+                <button onClick={loadData}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: `1.5px solid ${border}`, background: '#fff', color: text, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  Aggiorna KPI
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '80px 0', color: muted }}>
+              <p style={{ fontSize: 16, fontWeight: 600 }}>Nessuna coppia caricata.</p>
+              <p style={{ fontSize: 13, marginTop: 8 }}>Vai su <strong>Carica Excel</strong> per iniziare.</p>
             </div>
-            <Button
+          )}
+        </div>
+      )}
+
+      {/* ── CARICA EXCEL TAB ── */}
+      {tab === 'carica' && (
+        <div style={{ maxWidth: 560, margin: '32px auto', padding: '0 24px' }}>
+          <div style={{ background: '#fff', borderRadius: 16, border: `1.5px solid ${border}`, padding: 32 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: text, marginBottom: 6 }}>Carica coppie da Excel</h2>
+            <p style={{ fontSize: 12, color: muted, marginBottom: 24, lineHeight: 1.6 }}>
+              Il file deve avere le colonne:{' '}
+              <span style={{ fontFamily: 'monospace', fontSize: 11, background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>
+                numero, area, ean_coop, name_coop, price_coop, ean_idm, name_idm, price_idm, discount_pct
+              </span>
+            </p>
+
+            {/* Drop zone */}
+            <div
+              onClick={() => document.getElementById('file-upload')?.click()}
+              style={{
+                border: `2px dashed ${border}`,
+                borderRadius: 12,
+                background: '#f1f5f9',
+                padding: '40px 24px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                marginBottom: 20,
+                transition: 'border-color 0.2s',
+              }}>
+              <input type="file" accept=".xlsx,.xls,.csv"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                style={{ display: 'none' }} id="file-upload" />
+              <div style={{ fontSize: 36, marginBottom: 10 }}>📁</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: uploadFile ? text : muted }}>
+                {uploadFile ? uploadFile.name : 'Clicca per selezionare'}
+              </div>
+              <div style={{ fontSize: 12, color: subtle, marginTop: 4 }}>.xlsx · .xls · .csv</div>
+            </div>
+
+            <button
               onClick={handleUpload}
               disabled={!uploadFile || isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3"
-            >
+              style={{
+                width: '100%',
+                padding: '14px 0',
+                borderRadius: 10,
+                background: !uploadFile || isLoading ? '#94a3b8' : navy,
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                border: 'none',
+                cursor: !uploadFile || isLoading ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s',
+              }}>
               {isLoading ? 'Caricamento...' : 'Carica coppie'}
-            </Button>
+            </button>
+
             {coppieCount > 0 && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 font-medium text-center">
+              <div style={{ marginTop: 16, padding: '10px 16px', background: greenBg, border: `1px solid ${greenBorder}`, borderRadius: 10, fontSize: 13, color: greenDark, fontWeight: 600, textAlign: 'center' }}>
                 {coppieCount} coppie attive nel sistema
               </div>
             )}
-          </Card>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -6,27 +6,25 @@ import { getUserPDVId, getCoppieConStatus, updateCoppiaStatus } from './actions'
 
 type StatusFilter = 'all' | 'done' | 'todo'
 
-/* ─── PRODUCT BLOCK ─────────────────────────────────────── */
-function ProductBlock({ img, brand, isCoop, name, artId, ean, price, saving }: {
-  img?: string; brand: string; isCoop: boolean
-  name: string; artId: string; ean: string; price: number; saving?: string
-}) {
-  return (
-    <div className="flex flex-col items-center text-center px-4 py-4 gap-2">
-      {img
-        ? <img src={img} alt="" className="w-[72px] h-[72px] rounded-xl object-contain bg-gray-50 border border-gray-100" />
-        : <div className={`w-[72px] h-[72px] rounded-xl border ${isCoop ? 'bg-red-50 border-red-100' : 'bg-gray-100 border-gray-200'}`} />
-      }
-      <div className="flex items-center justify-center gap-1.5">
-        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider ${isCoop ? 'bg-[#E2001A] text-white' : 'bg-gray-800 text-white'}`}>{brand}</span>
-        {saving && <span className="text-[9px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{saving}</span>}
-      </div>
-      <p className="text-sm font-semibold leading-snug line-clamp-2 text-gray-800">{name || '—'}</p>
-      <p className="text-[10px] text-gray-400 leading-tight">EAN {ean} · COD {artId}</p>
-      <p className={`text-xl font-black ${isCoop ? 'text-[#E2001A]' : 'text-gray-800'}`}>€{Number(price).toFixed(2)}</p>
-    </div>
-  )
-}
+/* ─── Design tokens ─── */
+const navy       = '#0f2236'
+const navyLight  = '#1a3a5c'
+const red        = '#E2001A'
+const redLight   = '#fff5f5'
+const redBorder  = '#fecaca'
+const green      = '#22c55e'
+const greenBg    = '#f0fdf4'
+const greenBorder = '#bbf7d0'
+const greenDark  = '#065f46'
+const amber      = '#f59e0b'
+const amberBg    = '#fffbeb'
+const amberBorder = '#fde68a'
+const amberDark  = '#92400e'
+const border     = '#e2e8f0'
+const bg         = '#f1f5f9'
+const text       = '#0f172a'
+const muted      = '#64748b'
+const subtle     = '#94a3b8'
 
 /* ─── PAGE ──────────────────────────────────────────────── */
 export default function PDVCCPage() {
@@ -134,113 +132,82 @@ export default function PDVCCPage() {
   const closeMenu = () => setSideMenuOpen(false)
 
   if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f1f5f9' }}>
-      <div className="text-center">
-        <div className="w-8 h-8 border-4 border-[#E2001A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Caricamento...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 32, height: 32, border: `4px solid ${red}`, borderTop: '4px solid transparent', borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ fontSize: 13, color: muted }}>Caricamento...</p>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#f1f5f9' }}>
-      <div className="p-8 text-center bg-white rounded-2xl shadow-lg max-w-sm w-full">
-        <p className="text-red-600 font-bold mb-4">{error}</p>
-        <button onClick={() => router.push('/protected/home')} className="w-full py-2.5 border rounded-xl text-sm font-semibold">← Torna al menu</button>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: bg }}>
+      <div style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.1)', maxWidth: 360, width: '100%' }}>
+        <p style={{ color: red, fontWeight: 700, marginBottom: 16 }}>{error}</p>
+        <button onClick={() => router.push('/protected/home')}
+          style={{ width: '100%', padding: '10px 0', border: `1.5px solid ${border}`, borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', background: '#fff', color: text }}>
+          ← Torna al menu
+        </button>
       </div>
     </div>
   )
 
-  /* ─── SIDE DRAWER (shared mobile/desktop) ─── */
+  /* ─── SIDE DRAWER ─── */
   const SideDrawer = (
     <>
       {sideMenuOpen && (
         <button type="button" aria-label="Chiudi menu" onClick={closeMenu}
-          className="fixed inset-0 z-30 cursor-default"
-          style={{ background: 'rgba(0,0,0,0.55)', border: 'none', padding: 0 }} />
+          style={{ position: 'fixed', inset: 0, zIndex: 30, cursor: 'default', background: 'rgba(0,0,0,0.55)', border: 'none', padding: 0 }} />
       )}
-      <div
-        className="fixed top-0 left-0 h-full z-40 flex flex-col transition-transform duration-300"
-        style={{
-          width: 288,
-          background: '#1a3a5c',
-          transform: sideMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
-          boxShadow: sideMenuOpen ? '12px 0 40px rgba(0,0,0,0.25)' : 'none',
-        }}
-      >
+      <div style={{
+        position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 40, display: 'flex', flexDirection: 'column',
+        width: 288, background: navyLight,
+        transform: sideMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+        boxShadow: sideMenuOpen ? '12px 0 40px rgba(0,0,0,0.25)' : 'none',
+        transition: 'transform 0.3s ease',
+      }}>
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <span className="text-xs font-black tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>Coppie</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>Coppie</span>
           <button type="button" onClick={closeMenu}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-base"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
+            style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', fontSize: 14 }}>
             ✕
           </button>
         </div>
 
-        {/* Area filter pills */}
-        <div className="flex gap-2 px-3 py-2.5 overflow-x-auto scrollbar-none border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-          {['all', ...areas].map(a => (
-            <button key={a} type="button"
-              onClick={() => { setAreaFilter(a); }}
-              className="shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition"
-              style={areaFilter === a
-                ? { background: '#E2001A', color: '#fff' }
-                : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.35)' }}>
-              {a === 'all' ? 'TUTTI' : a}
-            </button>
-          ))}
-        </div>
-
-        {/* Status filters */}
-        <div className="flex gap-1.5 px-3 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-          {([['all','Tutte'],['done','✓ Fatte'],['todo','○ Da fare']] as [StatusFilter,string][]).map(([f, label]) => (
-            <button key={f} type="button"
-              onClick={() => setStatusFilter(f)}
-              className="flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition"
-              style={statusFilter === f
-                ? f === 'done' ? { background: 'rgba(22,163,74,0.15)', color: '#22c55e' }
-                  : f === 'todo' ? { background: 'rgba(217,119,6,0.15)', color: '#fbbf24' }
-                  : { background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }
-                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>
-              {label}
-            </button>
-          ))}
-        </div>
-
         {/* Search */}
-        <div className="px-3 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <input type="text" placeholder="Cerca…" value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg text-xs outline-none"
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff' }} />
+            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, fontSize: 12, outline: 'none', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', boxSizing: 'border-box' }} />
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto">
-          {filtered.map((c, idx) => {
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {filtered.map((c) => {
             const isDone = (statusMap[c.id] || 'todo') === 'done'
             const isActive = isMobile ? currentIndex === filtered.indexOf(c) : false
             return (
               <button key={c.id} type="button"
-                onClick={() => {
-                  if (isMobile) setCurrentIndex(filtered.indexOf(c))
-                  closeMenu()
-                }}
-                className="w-full text-left px-4 py-3 flex items-center gap-3 border-b"
+                onClick={() => { if (isMobile) setCurrentIndex(filtered.indexOf(c)); closeMenu() }}
                 style={{
-                  borderColor: 'rgba(255,255,255,0.03)',
-                  borderLeft: isActive ? '3px solid #E2001A' : '3px solid transparent',
+                  width: '100%', textAlign: 'left', padding: '12px 16px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  borderBottom: '1px solid rgba(255,255,255,0.03)',
+                  borderLeft: isActive ? `3px solid ${red}` : '3px solid transparent',
                   background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                  cursor: 'pointer', border: 'none',
+                  borderLeftWidth: 3, borderLeftStyle: 'solid', borderLeftColor: isActive ? red : 'transparent',
                 }}>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-semibold mb-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>#{c.numero} · {(c.area || '').trim()}</p>
-                  <p className="text-xs font-semibold truncate" style={{ color: 'rgba(255,255,255,0.82)' }}>{c.name_coop}</p>
-                  <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{c.name_idm || '—'}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.25)', marginBottom: 2 }}>#{c.numero} · {(c.area || '').trim()}</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.82)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name_coop}</p>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{c.name_idm || '—'}</p>
                 </div>
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0"
-                  style={isDone
-                    ? { background: 'rgba(22,163,74,0.15)', color: '#22c55e' }
-                    : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.2)' }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0,
+                  ...(isDone ? { background: 'rgba(22,163,74,0.15)', color: green } : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.2)' }),
+                }}>
                   {isDone ? '✓' : '○'}
                 </div>
               </button>
@@ -249,15 +216,15 @@ export default function PDVCCPage() {
         </div>
 
         {/* Footer stats */}
-        <div className="border-t p-3 space-y-2.5" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg p-2.5 text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <p className="text-xl font-black" style={{ color: '#22c55e' }}>{done}</p>
-              <p className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Fatte</p>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '10px 0', textAlign: 'center' }}>
+              <p style={{ fontSize: 20, fontWeight: 900, color: green, margin: 0 }}>{done}</p>
+              <p style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Fatte</p>
             </div>
-            <div className="rounded-lg p-2.5 text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <p className="text-xl font-black text-white">{todo}</p>
-              <p className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Da fare</p>
+            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: '10px 0', textAlign: 'center' }}>
+              <p style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0 }}>{todo}</p>
+              <p style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Da fare</p>
             </div>
           </div>
         </div>
@@ -265,68 +232,91 @@ export default function PDVCCPage() {
     </>
   )
 
-  /* ─── TOPBAR (shared) ─── */
+  /* ─── TOPBAR ─── */
   const Topbar = (
     <div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
       {/* Main bar */}
-      <div className="flex items-center gap-2 px-3 h-14" style={{ background: '#0f2744', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 56, background: navy, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button type="button" onClick={() => setSideMenuOpen(true)}
           style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, width: 40, height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, flexShrink: 0, cursor: 'pointer' }}>
           <span style={{ display: 'block', width: 18, height: 2, borderRadius: 2, background: '#fff' }} />
           <span style={{ display: 'block', width: 18, height: 2, borderRadius: 2, background: '#fff' }} />
           <span style={{ display: 'block', width: 18, height: 2, borderRadius: 2, background: '#fff' }} />
         </button>
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#E2001A', flexShrink: 0 }} />
-          <span className="text-sm font-black text-white truncate" style={{ letterSpacing: '-0.3px' }}>Confronta &amp; Conviene</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: red, flexShrink: 0 }} />
+          <span style={{ fontSize: 14, fontWeight: 900, color: '#fff', letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Confronta &amp; Conviene
+          </span>
         </div>
         <button type="button" onClick={() => router.push('/protected/home')}
-          className="text-xs font-bold px-3 py-1.5 rounded-full shrink-0"
-          style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}>
+          style={{ fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', flexShrink: 0 }}>
           ← Menu
         </button>
       </div>
 
-      {/* Progress bar */}
+      {/* Thin progress line */}
       <div style={{ height: 3, background: '#e2e8f0' }}>
-        <div style={{ height: 3, width: `${percentage}%`, background: '#22c55e', transition: 'width 0.4s ease' }} />
+        <div style={{ height: 3, width: `${percentage}%`, background: green, transition: 'width 0.4s ease' }} />
       </div>
 
-      {/* KPI + filtri subbar (mobile) */}
-      {isMobile && (
-        <div style={{ background: '#1a3a5c', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          {/* Conteggi */}
-          <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>{total} tot</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(22,163,74,0.15)', color: '#22c55e' }}>{done} fatte</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(217,119,6,0.15)', color: '#fbbf24' }}>{todo} mancanti</span>
-            <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden', marginLeft: 4 }}>
-              <div style={{ height: '100%', width: `${percentage}%`, background: '#22c55e', borderRadius: 4, transition: 'width 0.4s ease' }} />
-            </div>
-            <span className="text-[10px] font-black shrink-0" style={{ color: '#a78bfa' }}>{percentage}%</span>
+      {/* KPI subbar */}
+      <div style={{ background: navyLight, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 6px' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>{total} tot</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: 'rgba(22,163,74,0.15)', color: green }}>{done} fatte</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>{todo} mancano</span>
+          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden', marginLeft: 4 }}>
+            <div style={{ height: '100%', width: `${percentage}%`, background: green, borderRadius: 4, transition: 'width 0.4s ease' }} />
           </div>
-          {/* Filtri stato */}
-          <div className="flex px-3 pb-2 gap-1.5">
-            {([['all','Tutte'],['done','✓ Fatte'],['todo','○ Da fare']] as [StatusFilter,string][]).map(([f, label]) => (
-              <button key={f} type="button" onClick={() => setStatusFilter(f)}
-                className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition"
-                style={statusFilter === f
-                  ? f === 'done' ? { background: 'rgba(22,163,74,0.2)', color: '#22c55e' }
-                    : f === 'todo' ? { background: 'rgba(217,119,6,0.2)', color: '#fbbf24' }
-                    : { background: 'rgba(255,255,255,0.15)', color: '#fff' }
-                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <span style={{ fontSize: 10, fontWeight: 900, color: '#a78bfa', flexShrink: 0 }}>{percentage}%</span>
         </div>
-      )}
+      </div>
 
-      {/* PDV name (mobile) */}
-      {isMobile && pdvName && (
-        <div className="px-3 py-1.5 flex items-center gap-2" style={{ background: '#0f2744', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>PDV</span>
-          <span className="text-[10px] font-bold text-white truncate">{pdvName}</span>
+      {/* Filter bar — WHITE CARD style */}
+      <div style={{ background: '#fff', borderBottom: `1px solid ${border}`, padding: '8px 16px', display: 'flex', gap: 6, overflowX: 'auto', alignItems: 'center' }}>
+        {/* Status pills */}
+        {([
+          ['all',  `Tutte (${total})`],
+          ['done', `✓ Fatte (${done})`],
+          ['todo', `○ Da fare (${todo})`],
+        ] as [StatusFilter, string][]).map(([f, label]) => {
+          const isActive = statusFilter === f
+          let pillStyle: React.CSSProperties
+          if (isActive && f === 'done') {
+            pillStyle = { background: greenBg, color: greenDark, border: `1px solid ${greenBorder}` }
+          } else if (isActive && f === 'todo') {
+            pillStyle = { background: amberBg, color: amberDark, border: `1px solid ${amberBorder}` }
+          } else if (isActive) {
+            pillStyle = { background: '#1a1a1a', color: '#fff', border: '1px solid #1a1a1a' }
+          } else {
+            pillStyle = { background: 'transparent', color: muted, border: `1px solid ${border}` }
+          }
+          return (
+            <button key={f} type="button" onClick={() => setStatusFilter(f)}
+              style={{ padding: '6px 14px', borderRadius: 100, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', ...pillStyle }}>
+              {label}
+            </button>
+          )
+        })}
+
+        <div style={{ flex: 1 }} />
+
+        {/* Area dropdown */}
+        <select
+          value={areaFilter}
+          onChange={e => setAreaFilter(e.target.value)}
+          style={{ fontSize: 12, padding: '6px 12px', border: `1.5px solid ${border}`, borderRadius: 100, background: '#fff', color: text, outline: 'none', cursor: 'pointer' }}>
+          <option value="all">Tutte le aree</option>
+          {areas.map(a => <option key={a} value={a}>{a}</option>)}
+        </select>
+      </div>
+
+      {/* PDV name strip */}
+      {pdvName && (
+        <div style={{ background: navy, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.3)' }}>PDV</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pdvName}</span>
         </div>
       )}
     </div>
@@ -336,57 +326,138 @@ export default function PDVCCPage() {
   const PairCard = ({ coppia, isDone, showNav, prevFn, nextFn, hasPrev, hasNext }: any) => {
     const saving = savingLabel(coppia)
     return (
-      <div className={`bg-white rounded-2xl overflow-hidden ${isDone ? 'ring-2 ring-green-400' : ''}`}
-        style={{ boxShadow: isDone ? '0 0 0 2px #4ade80, 0 2px 12px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
+      <div style={{
+        background: '#fff',
+        borderRadius: 16,
+        border: `2px solid ${isDone ? greenBorder : border}`,
+        overflow: 'hidden',
+        boxShadow: isDone
+          ? '0 0 0 2px #22c55e22, 0 2px 16px rgba(0,0,0,0.06)'
+          : '0 2px 16px rgba(0,0,0,0.06)',
+      }}>
 
-        {/* Card topbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#f1f5f9' }}>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>#{coppia.numero}</span>
-            {coppia.forte && <span className="text-[9px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full">FORTE</span>}
-            <span className={`text-xs font-black px-2.5 py-1 rounded-full ${isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-              {isDone ? '✓ Fatto' : '○ Da fare'}
-            </span>
+        {/* Card header */}
+        <div style={{
+          background: '#f8fafc',
+          padding: '10px 16px',
+          borderBottom: `1px solid ${border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: subtle }}>#{coppia.numero}</span>
+            {coppia.area && <span style={{ fontSize: 11, color: muted, fontWeight: 600 }}>{(coppia.area || '').trim()}</span>}
+            {coppia.forte && (
+              <span style={{ fontSize: 9, fontWeight: 900, background: redLight, color: red, border: `1px solid ${redBorder}`, padding: '2px 7px', borderRadius: 100 }}>
+                FORTE
+              </span>
+            )}
+          </div>
+          <span style={{
+            fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 100,
+            ...(isDone
+              ? { background: greenBg, color: greenDark, border: `1px solid ${greenBorder}` }
+              : { background: '#f1f5f9', color: muted, border: `1px solid ${border}` }),
+          }}>
+            {isDone ? '✓ Fatta' : '○ Da fare'}
+          </span>
+        </div>
+
+        {/* COOP row */}
+        <div style={{ background: redLight, padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+          {/* Image */}
+          <div style={{
+            width: 56, height: 56, borderRadius: 12, background: '#fff',
+            border: `1px solid ${redBorder}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+          }}>
+            {coppia.img_coop
+              ? <img src={coppia.img_coop} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
+            }
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+              <span style={{ background: red, color: '#fff', fontSize: 9, fontWeight: 900, padding: '2px 8px', borderRadius: 100 }}>COOP</span>
+              {saving && <span style={{ background: greenBg, color: greenDark, fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>{saving}</span>}
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: text, lineHeight: 1.3, marginBottom: 3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {coppia.name_coop || '—'}
+            </p>
+            <p style={{ fontSize: 10, color: subtle }}>EAN {coppia.ean_coop}</p>
+          </div>
+
+          {/* Price */}
+          <div style={{ fontSize: 22, fontWeight: 800, color: red, flexShrink: 0 }}>
+            €{Number(coppia.price_coop).toFixed(2)}
           </div>
         </div>
 
-        {/* Products */}
-        <ProductBlock img={coppia.img_coop} brand="COOP" isCoop saving={saving}
-          name={coppia.name_coop} artId={coppia.articolo_id_coop}
-          ean={coppia.ean_coop} price={coppia.price_coop} />
-
-        <div className="flex items-center gap-3 mx-4">
-          <div className="flex-1 border-t border-dashed" style={{ borderColor: '#e2e8f0' }} />
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black"
-            style={{ background: '#0f2744', color: '#fff' }}>VS</div>
-          <div className="flex-1 border-t border-dashed" style={{ borderColor: '#e2e8f0' }} />
+        {/* VS divider */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 18px' }}>
+          <div style={{ flex: 1, borderTop: `1.5px dashed ${border}` }} />
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: navy, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, margin: '0 8px' }}>
+            VS
+          </div>
+          <div style={{ flex: 1, borderTop: `1.5px dashed ${border}` }} />
         </div>
 
-        <ProductBlock img={coppia.img_idm} brand="IDM" isCoop={false}
-          name={coppia.name_idm} artId={coppia.articolo_id_idm}
-          ean={coppia.ean_idm} price={coppia.price_idm} />
+        {/* IDM row */}
+        <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+          {/* Image */}
+          <div style={{
+            width: 56, height: 56, borderRadius: 12, background: '#fff',
+            border: `1px solid ${border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+          }}>
+            {coppia.img_idm
+              ? <img src={coppia.img_idm} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
+            }
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ background: '#e2e8f0', color: '#475569', fontSize: 9, fontWeight: 900, padding: '2px 8px', borderRadius: 100 }}>IDM</span>
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: text, lineHeight: 1.3, marginBottom: 3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {coppia.name_idm || '—'}
+            </p>
+            <p style={{ fontSize: 10, color: subtle }}>EAN {coppia.ean_idm}</p>
+          </div>
+
+          {/* Price */}
+          <div style={{ fontSize: 22, fontWeight: 800, color: muted, flexShrink: 0 }}>
+            €{Number(coppia.price_idm).toFixed(2)}
+          </div>
+        </div>
 
         {/* Action bar */}
-        <div className="flex gap-2 px-4 py-3 border-t" style={{ borderColor: '#f1f5f9' }}>
+        <div style={{ padding: '12px 16px', borderTop: `1px solid ${border}`, display: 'flex', gap: 8 }}>
           <button type="button"
             onClick={() => toggleStatus(coppia.id)}
             disabled={updating === coppia.id}
-            className="flex-1 py-3.5 rounded-xl font-black text-sm transition"
-            style={isDone
-              ? { background: '#f1f5f9', color: '#94a3b8' }
-              : { background: '#16a34a', color: '#fff', boxShadow: '0 3px 12px rgba(22,163,74,0.25)' }}>
-            {updating === coppia.id ? '...' : isDone ? '○ Da fare' : '✓ Fatta'}
+            style={{
+              flex: 1, padding: 12, borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              ...(isDone
+                ? { background: '#f1f5f9', color: muted, border: `1.5px solid ${border}` }
+                : { background: green, color: '#fff', border: `1.5px solid ${green}` }),
+            }}>
+            {updating === coppia.id ? '...' : isDone ? '○ Segna da fare' : '✓ Segna come fatta'}
           </button>
-          {showNav && (
-            <div className="flex gap-1.5">
+
+          {showNav && (hasPrev || hasNext) && (
+            <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={prevFn} disabled={!hasPrev}
-                className="w-12 h-12 rounded-xl font-bold text-lg flex items-center justify-center transition disabled:opacity-30"
-                style={{ background: '#f1f5f9', border: '1.5px solid #e2e8f0', color: '#475569' }}>
+                style={{ width: 44, height: 44, borderRadius: 10, background: '#f1f5f9', border: `1.5px solid ${border}`, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasPrev ? 'pointer' : 'default', opacity: hasPrev ? 1 : 0.3 }}>
                 ←
               </button>
               <button type="button" onClick={nextFn} disabled={!hasNext}
-                className="w-12 h-12 rounded-xl font-bold text-lg flex items-center justify-center transition disabled:opacity-30"
-                style={{ background: '#f1f5f9', border: '1.5px solid #e2e8f0', color: '#475569' }}>
+                style={{ width: 44, height: 44, borderRadius: 10, background: '#f1f5f9', border: `1.5px solid ${border}`, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasNext ? 'pointer' : 'default', opacity: hasNext ? 1 : 0.3 }}>
                 →
               </button>
             </div>
@@ -402,19 +473,21 @@ export default function PDVCCPage() {
     const isDone = coppia ? (statusMap[coppia.id] || 'todo') === 'done' : false
 
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#f1f5f9' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: bg }}>
         {Topbar}
         {SideDrawer}
 
         {total === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-center text-gray-400 p-8">
-            <p className="font-semibold">Nessuna coppia disponibile.</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: muted, padding: 32 }}>
+            <p style={{ fontWeight: 600 }}>Nessuna coppia disponibile.</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Nessuna coppia trovata</div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: muted, fontSize: 13 }}>
+            Nessuna coppia trovata
+          </div>
         ) : (
-          <div className="flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <div className="flex-1 p-3">
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+            <div style={{ flex: 1, padding: 12 }}>
               <PairCard coppia={coppia} isDone={isDone}
                 showNav={true}
                 hasPrev={currentIndex > 0}
@@ -422,83 +495,51 @@ export default function PDVCCPage() {
                 prevFn={() => setCurrentIndex(i => Math.max(0, i - 1))}
                 nextFn={() => setCurrentIndex(i => Math.min(filtered.length - 1, i + 1))} />
             </div>
-            <div className="text-center pb-4 pt-1">
-              <span className="text-xs" style={{ color: '#94a3b8' }}>
-                <span className="font-bold text-sm text-gray-700">{currentIndex + 1}</span> / {filtered.length}
-                {areaFilter !== 'all' && <span className="ml-2 text-blue-600 font-semibold">{areaFilter}</span>}
+            <div style={{ textAlign: 'center', paddingBottom: 16, paddingTop: 4 }}>
+              <span style={{ fontSize: 12, color: subtle }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: text }}>{currentIndex + 1}</span>
+                {' / '}{filtered.length}
+                {areaFilter !== 'all' && <span style={{ marginLeft: 8, color: '#3b82f6', fontWeight: 600 }}>{areaFilter}</span>}
               </span>
             </div>
           </div>
         )}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#f1f5f9' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: bg }}>
       {Topbar}
       {SideDrawer}
 
-      {/* Desktop area pills */}
-      {areas.length > 0 && (
-        <div className="bg-white border-b px-6 py-2.5 overflow-x-auto">
-          <div className="flex gap-2 max-w-5xl mx-auto" style={{ width: 'max-content', minWidth: '100%' }}>
-            {['all', ...areas].map(a => (
-              <button key={a} type="button" onClick={() => setAreaFilter(a)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition"
-                style={areaFilter === a
-                  ? { background: '#0f2744', color: '#fff' }
-                  : { background: '#f1f5f9', color: '#475569' }}>
-                {a === 'all' ? 'Tutti' : a}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Desktop search + status tabs */}
-      <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4">
-          <input type="text" placeholder="Cerca prodotto…" value={search} onChange={e => setSearch(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-400" />
-          <div className="flex gap-1 shrink-0">
-            {([['all',`Tutte (${total})`],['done',`Fatte (${done})`],['todo',`Da fare (${todo})`]] as [StatusFilter,string][]).map(([f, label]) => (
-              <button key={f} type="button" onClick={() => setStatusFilter(f)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold transition"
-                style={statusFilter === f
-                  ? f === 'done' ? { background: '#dcfce7', color: '#16a34a' }
-                    : f === 'todo' ? { background: '#fef3c7', color: '#d97706' }
-                    : { background: '#dbeafe', color: '#1d4ed8' }
-                  : { background: '#f1f5f9', color: '#64748b' }}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-6 py-6 w-full space-y-4">
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 48px', width: '100%' }}>
         {total === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <p className="text-4xl mb-3 opacity-30">👈</p>
-            <p>Nessuna coppia disponibile.</p>
-            <p className="text-sm mt-1">Il master non ha ancora caricato le coppie.</p>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: muted }}>
+            <p style={{ fontSize: 36, marginBottom: 12, opacity: 0.3 }}>👈</p>
+            <p style={{ fontWeight: 600 }}>Nessuna coppia disponibile.</p>
+            <p style={{ fontSize: 13, marginTop: 4 }}>Il master non ha ancora caricato le coppie.</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 text-sm">Nessuna coppia trovata</div>
+          <div style={{ textAlign: 'center', padding: '48px 0', color: muted, fontSize: 13 }}>
+            Nessuna coppia trovata
+          </div>
         ) : (
-          filtered.map((coppia, idx) => {
-            const isDone = (statusMap[coppia.id] || 'todo') === 'done'
-            return (
-              <PairCard key={coppia.id} coppia={coppia} isDone={isDone}
-                showNav={false} hasPrev={false} hasNext={false}
-                prevFn={() => {}} nextFn={() => {}} />
-            )
-          })
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {filtered.map((coppia) => {
+              const isDone = (statusMap[coppia.id] || 'todo') === 'done'
+              return (
+                <PairCard key={coppia.id} coppia={coppia} isDone={isDone}
+                  showNav={false} hasPrev={false} hasNext={false}
+                  prevFn={() => {}} nextFn={() => {}} />
+              )
+            })}
+          </div>
         )}
-        <div className="h-6" />
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
