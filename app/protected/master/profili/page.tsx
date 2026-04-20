@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
-import { getPDVList, getPDVUsers, createPDV, createUser, deleteUser, resetUserPassword } from './actions'
+import { getPDVList, getPDVUsers, createPDV, createUser, deleteUser, resetUserPassword, updateUserPermissions } from './actions'
 import { getFascia } from '@/lib/fascia'
 
 const fasciaBadge: Record<string, string> = {
@@ -38,6 +38,8 @@ export default function GestioneUtenzePage() {
   const [referente, setReferente] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [canSeeCoppie, setCanSeeCoppie] = useState(true)
+  const [canSeeCluster, setCanSeeCluster] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
 
   const [newCredentials, setNewCredentials] = useState<{ email: string; password: string; pdv: string } | null>(null)
@@ -68,12 +70,21 @@ export default function GestioneUtenzePage() {
     if (!selectedPdvId || !referente || !email || !password) { alert('Compila tutti i campi'); return }
     setIsLoading(true)
     const pdv = pdvList.find(p => p.id === selectedPdvId)
-    const result = await createUser(email, password, referente, selectedPdvId)
+    const result = await createUser(email, password, referente, selectedPdvId, canSeeCoppie, canSeeCluster)
     setIsLoading(false)
     if (result.error) { alert(`Errore: ${result.error}`); return }
     setNewCredentials({ email, password, pdv: pdv?.name || '' })
-    setSelectedPdvId(''); setReferente(''); setEmail(''); setPassword('')
+    setSelectedPdvId(''); setReferente(''); setEmail(''); setPassword(''); setCanSeeCoppie(true); setCanSeeCluster(true)
     await loadData()
+  }
+
+  const handleTogglePermission = async (userId: string, field: 'can_see_coppie' | 'can_see_cluster', current: boolean) => {
+    const u = users.find(u => u.id === userId)
+    if (!u) return
+    const newCoppie = field === 'can_see_coppie' ? !current : (u.can_see_coppie ?? true)
+    const newCluster = field === 'can_see_cluster' ? !current : (u.can_see_cluster ?? true)
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, can_see_coppie: newCoppie, can_see_cluster: newCluster } : u))
+    await updateUserPermissions(userId, newCoppie, newCluster)
   }
 
   const handleResetPassword = async (userId: string, email: string, pdvName: string) => {
@@ -279,6 +290,16 @@ export default function GestioneUtenzePage() {
                       </div>
                     </div>
                   </div>
+                  <div className="flex gap-6 mb-5">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input type="checkbox" checked={canSeeCoppie} onChange={e => setCanSeeCoppie(e.target.checked)} className="w-4 h-4 accent-blue-600" />
+                      <span className="text-sm font-medium">Confronta & Conviene</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input type="checkbox" checked={canSeeCluster} onChange={e => setCanSeeCluster(e.target.checked)} className="w-4 h-4 accent-purple-600" />
+                      <span className="text-sm font-medium">Cluster Analytics</span>
+                    </label>
+                  </div>
                   <Button onClick={handleCreateUser} disabled={isLoading} className="bg-green-600 hover:bg-green-700 text-white font-bold">
                     {isLoading ? 'Creazione...' : 'Crea utenza'}
                   </Button>
@@ -296,6 +317,8 @@ export default function GestioneUtenzePage() {
                         <th className="px-4 py-3 text-left font-bold">Referente</th>
                         <th className="px-4 py-3 text-left font-bold">Email</th>
                         <th className="px-4 py-3 text-left font-bold">PDV</th>
+                        <th className="px-4 py-3 text-center font-bold">Coppie</th>
+                        <th className="px-4 py-3 text-center font-bold">Cluster</th>
                         <th className="px-4 py-3 text-left font-bold">Fascia</th>
                         <th className="px-4 py-3"></th>
                       </tr>
@@ -309,6 +332,12 @@ export default function GestioneUtenzePage() {
                             <td className="px-4 py-3 font-medium">{u.name}</td>
                             <td className="px-4 py-3 text-gray-600">{u.email || '—'}</td>
                             <td className="px-4 py-3">{uPdv ? `${uPdv.code} — ${uPdv.name}` : '—'}</td>
+                            <td className="px-4 py-3 text-center">
+                              <input type="checkbox" checked={u.can_see_coppie ?? true} onChange={() => handleTogglePermission(u.id, 'can_see_coppie', u.can_see_coppie ?? true)} className="w-4 h-4 accent-blue-600 cursor-pointer" />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <input type="checkbox" checked={u.can_see_cluster ?? true} onChange={() => handleTogglePermission(u.id, 'can_see_cluster', u.can_see_cluster ?? true)} className="w-4 h-4 accent-purple-600 cursor-pointer" />
+                            </td>
                             <td className="px-4 py-3">
                               {f && <span className={`px-2 py-1 rounded-full text-xs font-bold ${fasciaBadge[f]}`}>{f}</span>}
                             </td>

@@ -27,7 +27,7 @@ export default function HomePage() {
       }
 
       const { data: profileData } = await supabase
-        .from('user_profiles').select('*').eq('id', user.id).single()
+        .from('user_profiles').select('id, role, name, pdv_id, can_see_coppie, can_see_cluster').eq('id', user.id).single()
 
       if (profileData) {
         setProfile(profileData)
@@ -88,18 +88,22 @@ export default function HomePage() {
 
         {profile?.role === 'pdv' && (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="p-8 hover:shadow-lg transition">
-              <div className="text-5xl mb-4">🔄</div>
-              <h2 className="text-2xl font-bold mb-3">Confronta & Conviene</h2>
-              <p className="text-gray-600 mb-6">Gestisci le coppie prodotto COOP vs IDM.</p>
-              <Button onClick={() => router.push('/protected/confronta-conviene')} className="w-full bg-blue-600 hover:bg-blue-700">Accedi →</Button>
-            </Card>
-            <Card className="p-8 hover:shadow-lg transition">
-              <div className="text-5xl mb-4">📊</div>
-              <h2 className="text-2xl font-bold mb-3">Cluster Analytics</h2>
-              <p className="text-gray-600 mb-6">Gestisci assortimenti per categoria e metratura.</p>
-              <Button onClick={() => router.push('/protected/cluster/dashboard')} className="w-full bg-purple-600 hover:bg-purple-700">Accedi →</Button>
-            </Card>
+            {(profile as any).can_see_coppie !== false && (
+              <Card className="p-8 hover:shadow-lg transition">
+                <div className="text-5xl mb-4">🔄</div>
+                <h2 className="text-2xl font-bold mb-3">Confronta & Conviene</h2>
+                <p className="text-gray-600 mb-6">Gestisci le coppie prodotto COOP vs IDM.</p>
+                <Button onClick={() => router.push('/protected/confronta-conviene')} className="w-full bg-blue-600 hover:bg-blue-700">Accedi →</Button>
+              </Card>
+            )}
+            {(profile as any).can_see_cluster !== false && (
+              <Card className="p-8 hover:shadow-lg transition">
+                <div className="text-5xl mb-4">📊</div>
+                <h2 className="text-2xl font-bold mb-3">Cluster Analytics</h2>
+                <p className="text-gray-600 mb-6">Gestisci assortimenti per categoria e metratura.</p>
+                <Button onClick={() => router.push('/protected/cluster/dashboard')} className="w-full bg-purple-600 hover:bg-purple-700">Accedi →</Button>
+              </Card>
+            )}
           </div>
         )}
       </main>

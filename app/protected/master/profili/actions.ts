@@ -31,7 +31,7 @@ export async function getPDVUsers() {
     const admin = createAdminClient()
     const { data: users } = await admin
       .from('user_profiles')
-      .select('id, name, email, pdv:pdv_id(id, code, name, metratura_mq)')
+      .select('id, name, email, can_see_coppie, can_see_cluster, pdv:pdv_id(id, code, name, metratura_mq)')
       .eq('role', 'pdv')
       .order('name')
 
@@ -98,7 +98,9 @@ export async function createUser(
   email: string,
   password: string,
   referente: string,
-  pdvId: string
+  pdvId: string,
+  canSeeCoppie: boolean,
+  canSeeCluster: boolean
 ) {
   try {
     const supabase = await createServerClient()
@@ -115,11 +117,31 @@ export async function createUser(
 
     const { error: profileError } = await admin
       .from('user_profiles')
-      .insert({ id: authUser.user.id, role: 'pdv', name: referente, email, pdv_id: pdvId })
+      .insert({ id: authUser.user.id, role: 'pdv', name: referente, email, pdv_id: pdvId, can_see_coppie: canSeeCoppie, can_see_cluster: canSeeCluster })
     if (profileError) {
       await admin.auth.admin.deleteUser(authUser.user.id)
       return { error: profileError.message }
     }
+
+    revalidatePath('/protected/master/profili')
+    return { success: true }
+  } catch (error) {
+    return { error: String(error) }
+  }
+}
+
+export async function updateUserPermissions(userId: string, canSeeCoppie: boolean, canSeeCluster: boolean) {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Non autenticato' }
+
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from('user_profiles')
+      .update({ can_see_coppie: canSeeCoppie, can_see_cluster: canSeeCluster })
+      .eq('id', userId)
+    if (error) return { error: error.message }
 
     revalidatePath('/protected/master/profili')
     return { success: true }
