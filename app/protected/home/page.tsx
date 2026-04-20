@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { UserProfile } from '@/lib/types'
+import { getPDVProgress } from './actions'
 
 /* ─── Design tokens ─── */
 const navy     = '#0f2236'
@@ -135,6 +136,7 @@ function ModuleCard({
 export default function HomePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [pdvCode, setPdvCode] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [done, setDone] = useState(0)
   const [total, setTotal] = useState(0)
@@ -154,18 +156,19 @@ export default function HomePage() {
       }
 
       const { data: profileData } = await supabase
-        .from('user_profiles').select('id, role, name, pdv_id, can_see_coppie, can_see_cluster').eq('id', user.id).single()
+        .from('user_profiles').select('id, role, name, pdv_id, can_see_coppie, can_see_cluster, pdv:pdv_id(code)').eq('id', user.id).single()
 
       if (profileData) {
         setProfile(profileData)
-        // Load progress for PDV
+        const pdv = Array.isArray(profileData.pdv) ? profileData.pdv[0] : profileData.pdv
+        if (pdv?.code) setPdvCode(pdv.code)
+        // Load progress for PDV via server action (admin client bypasses RLS)
         if (profileData.role === 'pdv' && profileData.pdv_id) {
-          const { data: coppie } = await supabase.from('coppie').select('id', { count: 'exact' }).eq('active', true)
-          const { data: statuses } = await supabase.from('coppia_pdv_status').select('status').eq('pdv_id', profileData.pdv_id)
-          const totalN = coppie?.length || 0
-          const doneN  = statuses?.filter(s => s.status === 'done').length || 0
-          setTotal(totalN)
-          setDone(doneN)
+          const progress = await getPDVProgress(profileData.pdv_id)
+          if (progress.success) {
+            setTotal(progress.total)
+            setDone(progress.done)
+          }
         }
         setIsLoading(false)
         return
@@ -218,6 +221,12 @@ export default function HomePage() {
           <div style={{ fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
             {isMaster ? 'Dashboard Master' : `Ciao, ${profile?.name || 'Utente'}`}
           </div>
+          {!isMaster && pdvCode && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PDV</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#fff', fontFamily: 'monospace', background: 'rgba(226,0,26,0.18)', padding: '2px 8px', borderRadius: 6 }}>{pdvCode}</span>
+            </div>
+          )}
 
           {/* Date */}
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 16 }}>

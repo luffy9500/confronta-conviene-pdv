@@ -4,6 +4,54 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
+export async function getFullReport() {
+  try {
+    const admin = createAdminClient()
+
+    const { data: coppie } = await admin
+      .from('coppie').select('id, numero, area, name_coop, ean_coop, price_coop, name_idm, ean_idm, price_idm')
+      .eq('active', true).order('numero')
+
+    const { data: pdvList } = await admin
+      .from('pdv').select('id, code, name').eq('status', 'active').order('name')
+
+    const { data: statuses } = await admin
+      .from('coppia_pdv_status').select('pdv_id, coppia_id, status')
+
+    if (!coppie || !pdvList) return { error: 'Dati non disponibili' }
+
+    const statusMap: Record<string, Record<string, string>> = {}
+    for (const s of statuses || []) {
+      if (!statusMap[s.pdv_id]) statusMap[s.pdv_id] = {}
+      statusMap[s.pdv_id][s.coppia_id] = s.status
+    }
+
+    const rows: any[] = []
+    for (const pdv of pdvList) {
+      for (const c of coppie) {
+        const stato = (statusMap[pdv.id]?.[c.id] || 'todo') === 'done' ? 'Fatta' : 'Non fatta'
+        rows.push({
+          'Codice PDV': pdv.code,
+          'Nome PDV': pdv.name,
+          'N° Coppia': c.numero,
+          'Area': c.area || '',
+          'Nome COOP': c.name_coop || '',
+          'EAN COOP': c.ean_coop || '',
+          'Prezzo COOP': c.price_coop ?? '',
+          'Nome IDM': c.name_idm || '',
+          'EAN IDM': c.ean_idm || '',
+          'Prezzo IDM': c.price_idm ?? '',
+          'Stato': stato,
+        })
+      }
+    }
+
+    return { success: true, rows }
+  } catch (error) {
+    return { error: String(error) }
+  }
+}
+
 export async function getCoppieCount() {
   try {
     const admin = createAdminClient()

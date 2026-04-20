@@ -130,6 +130,60 @@ export async function createUser(
   }
 }
 
+export async function updatePDV(id: string, code: string, name: string, metraturaMq: number) {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Non autenticato' }
+
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from('pdv')
+      .update({ code, name, metratura_mq: metraturaMq })
+      .eq('id', id)
+    if (error) return { error: error.message }
+
+    revalidatePath('/protected/master/profili')
+    return { success: true }
+  } catch (error) {
+    return { error: String(error) }
+  }
+}
+
+export async function deletePDV(id: string) {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Non autenticato' }
+
+    const admin = createAdminClient()
+    const { error } = await admin.from('pdv').delete().eq('id', id)
+    if (error) return { error: error.message }
+
+    revalidatePath('/protected/master/profili')
+    return { success: true }
+  } catch (error) {
+    return { error: String(error) }
+  }
+}
+
+export async function setPDVStatus(id: string, status: 'active' | 'inactive') {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Non autenticato' }
+
+    const admin = createAdminClient()
+    const { error } = await admin.from('pdv').update({ status }).eq('id', id)
+    if (error) return { error: error.message }
+
+    revalidatePath('/protected/master/profili')
+    return { success: true }
+  } catch (error) {
+    return { error: String(error) }
+  }
+}
+
 export async function updateUserPermissions(userId: string, canSeeCoppie: boolean, canSeeCluster: boolean) {
   try {
     const supabase = await createServerClient()

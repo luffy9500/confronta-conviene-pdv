@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
-import { uploadCoppie, getKPINetwork, getCoppieCount } from './actions'
+import { uploadCoppie, getKPINetwork, getCoppieCount, getFullReport } from './actions'
 
 type Tab = 'kpi' | 'carica'
 
@@ -60,6 +60,7 @@ export default function MasterCCPage() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('kpi')
   const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [coppieCount, setCoppieCount] = useState(0)
   const [kpiData, setKpiData] = useState<any>(null)
@@ -97,6 +98,18 @@ export default function MasterCCPage() {
       }
     }
     reader.readAsArrayBuffer(uploadFile)
+  }
+
+  const downloadReport = async () => {
+    setIsDownloading(true)
+    const result = await getFullReport()
+    setIsDownloading(false)
+    if (!result.success || !result.rows) { alert('Errore nel download'); return }
+    const ws = XLSX.utils.json_to_sheet(result.rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Report Coppie')
+    const date = new Date().toISOString().slice(0, 10)
+    XLSX.writeFile(wb, `report_coppie_rete_${date}.xlsx`)
   }
 
   const network = kpiData?.network
@@ -263,11 +276,17 @@ export default function MasterCCPage() {
                 </div>
               )}
 
-              {/* Refresh button */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+              {/* Action buttons */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
                 <button onClick={loadData}
                   style={{ padding: '10px 24px', borderRadius: 10, border: `1.5px solid ${border}`, background: '#fff', color: text, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   Aggiorna KPI
+                </button>
+                <button
+                  onClick={downloadReport}
+                  disabled={isDownloading}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: navy, color: '#fff', fontSize: 13, fontWeight: 600, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {isDownloading ? 'Generazione...' : '↓ Scarica Report Excel'}
                 </button>
               </div>
             </>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import * as XLSX from 'xlsx'
 import { getUserPDVId, getCoppieConStatus, updateCoppiaStatus } from './actions'
 
 type StatusFilter = 'all' | 'done' | 'todo'
@@ -31,6 +32,7 @@ export default function PDVCCPage() {
   const router = useRouter()
   const [pdvId, setPdvId]       = useState<string | null>(null)
   const [pdvName, setPdvName]   = useState('')
+  const [pdvCode, setPdvCode]   = useState('')
   const [coppie, setCoppie]     = useState<any[]>([])
   const [statusMap, setStatusMap] = useState<Record<string, string>>({})
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -66,6 +68,7 @@ export default function PDVCCPage() {
     }
     setPdvId(pdvRes.pdvId)
     setPdvName(pdvRes.pdvName || '')
+    setPdvCode(pdvRes.pdvCode || '')
     const dataRes = await getCoppieConStatus(pdvRes.pdvId)
     if (dataRes.success) {
       setCoppie(dataRes.coppie || [])
@@ -130,6 +133,26 @@ export default function PDVCCPage() {
   }
 
   const closeMenu = () => setSideMenuOpen(false)
+
+  const downloadReport = () => {
+    const rows = coppie.map(c => ({
+      'N° Coppia': c.numero,
+      'Area': c.area || '',
+      'Nome COOP': c.name_coop || '',
+      'EAN COOP': c.ean_coop || '',
+      'Prezzo COOP': c.price_coop ?? '',
+      'Nome IDM': c.name_idm || '',
+      'EAN IDM': c.ean_idm || '',
+      'Prezzo IDM': c.price_idm ?? '',
+      'Stato': (statusMap[c.id] || 'todo') === 'done' ? 'Fatta' : 'Non fatta',
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Coppie')
+    const date = new Date().toISOString().slice(0, 10)
+    const prefix = pdvCode ? `report_coppie_${pdvCode}` : 'report_coppie'
+    XLSX.writeFile(wb, `${prefix}_${date}.xlsx`)
+  }
 
   if (isLoading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg }}>
@@ -270,6 +293,15 @@ export default function PDVCCPage() {
             <div style={{ height: '100%', width: `${percentage}%`, background: green, borderRadius: 4, transition: 'width 0.4s ease' }} />
           </div>
           <span style={{ fontSize: 10, fontWeight: 900, color: '#a78bfa', flexShrink: 0 }}>{percentage}%</span>
+          {total > 0 && (
+            <button
+              type="button"
+              onClick={downloadReport}
+              title="Scarica report Excel"
+              style={{ padding: '3px 10px', borderRadius: 100, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+              ↓ Excel
+            </button>
+          )}
         </div>
       </div>
 
@@ -316,6 +348,9 @@ export default function PDVCCPage() {
       {pdvName && (
         <div style={{ background: navy, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.3)' }}>PDV</span>
+          {pdvCode && (
+            <span style={{ fontSize: 10, fontWeight: 900, color: red, fontFamily: 'monospace', background: 'rgba(226,0,26,0.12)', padding: '1px 6px', borderRadius: 4 }}>{pdvCode}</span>
+          )}
           <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pdvName}</span>
         </div>
       )}
