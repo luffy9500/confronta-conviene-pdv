@@ -27,6 +27,30 @@ const text       = '#0f172a'
 const muted      = '#64748b'
 const subtle     = '#94a3b8'
 
+/* ─── ProductImage ─── */
+function offUrl(ean: string): string {
+  const e = ean.replace(/\D/g, '').padStart(13, '0')
+  return `https://images.openfoodfacts.org/images/products/${e.slice(0,3)}/${e.slice(3,6)}/${e.slice(6,9)}/${e.slice(9)}/front_it.400.jpg`
+}
+
+function ProductImage({ ean, borderColor }: { ean?: string; borderColor: string }) {
+  const [failed, setFailed] = useState(false)
+  const url = ean && !failed ? offUrl(ean) : null
+  return (
+    <div style={{
+      width: 56, height: 56, borderRadius: 12, background: '#fff',
+      border: `1px solid ${borderColor}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0, overflow: 'hidden',
+    }}>
+      {url
+        ? <img src={url} alt="" onError={() => setFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        : <span style={{ fontSize: 9, color: subtle }}>foto</span>
+      }
+    </div>
+  )
+}
+
 /* ─── PAGE ──────────────────────────────────────────────── */
 export default function PDVCCPage() {
   const router = useRouter()
@@ -400,17 +424,7 @@ export default function PDVCCPage() {
 
         {/* IDM row — top, neutral */}
         <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          {/* Image */}
-          <div style={{
-            width: 56, height: 56, borderRadius: 12, background: '#fff',
-            border: `1px solid ${border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
-          }}>
-            {coppia.img_idm
-              ? <img src={coppia.img_idm} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
-            }
-          </div>
+          <ProductImage ean={coppia.ean_idm} borderColor={border} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -436,17 +450,7 @@ export default function PDVCCPage() {
 
         {/* COOP row — bottom, warm red (conveniente) */}
         <div style={{ background: redLight, padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          {/* Image */}
-          <div style={{
-            width: 56, height: 56, borderRadius: 12, background: '#fff',
-            border: `1px solid ${redBorder}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
-          }}>
-            {coppia.img_coop
-              ? <img src={coppia.img_coop} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
-            }
-          </div>
+          <ProductImage ean={coppia.ean_coop} borderColor={redBorder} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
