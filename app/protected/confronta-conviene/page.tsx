@@ -28,17 +28,19 @@ const muted      = '#64748b'
 const subtle     = '#94a3b8'
 
 /* ─── ProductImage ─── */
-function ProductImage({ ean, borderColor }: { ean?: string; borderColor: string }) {
+function ProductImage({ ean, name, borderColor }: { ean?: string; name?: string; borderColor: string }) {
   const [imgUrl, setImgUrl] = useState<string | null | undefined>(undefined)
 
   useEffect(() => {
-    if (!ean) { setImgUrl(null); return }
-    const clean = ean.replace(/\D/g, '')
-    fetch(`https://world.openfoodfacts.org/api/v2/product/${clean}?fields=image_front_small_url`)
+    const params = new URLSearchParams()
+    if (ean)  params.set('ean', ean.replace(/\D/g, ''))
+    if (name) params.set('name', name)
+    if (!params.toString()) { setImgUrl(null); return }
+    fetch(`/api/product-image?${params}`)
       .then(r => r.json())
-      .then(d => setImgUrl(d.product?.image_front_small_url ?? null))
+      .then(d => setImgUrl(d.url ?? null))
       .catch(() => setImgUrl(null))
-  }, [ean])
+  }, [ean, name])
 
   return (
     <div style={{
@@ -428,7 +430,7 @@ export default function PDVCCPage() {
 
         {/* IDM row — top, neutral */}
         <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <ProductImage ean={coppia.ean_idm} borderColor={border} />
+          <ProductImage ean={coppia.ean_idm} name={coppia.name_idm} borderColor={border} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -454,7 +456,7 @@ export default function PDVCCPage() {
 
         {/* COOP row — bottom, warm red (conveniente) */}
         <div style={{ background: redLight, padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <ProductImage ean={coppia.ean_coop} borderColor={redBorder} />
+          <ProductImage ean={coppia.ean_coop} name={coppia.name_coop} borderColor={redBorder} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
