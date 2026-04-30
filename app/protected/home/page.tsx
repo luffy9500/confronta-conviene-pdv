@@ -60,9 +60,10 @@ function Tag({ text, color }: { text: string; color: 'green' | 'amber' | 'red' |
 
 /* ─── ModuleCard ─── */
 function ModuleCard({
-  icon, title, desc, tags, ctaLabel, ctaColor, disabled, onClick,
+  icon, logo, title, desc, tags, ctaLabel, ctaColor, disabled, onClick, progress,
 }: {
-  icon: string
+  icon?: React.ReactNode
+  logo?: string
   title: string
   desc: string
   tags?: React.ReactNode
@@ -70,6 +71,7 @@ function ModuleCard({
   ctaColor: string
   disabled?: boolean
   onClick?: () => void
+  progress?: number
 }) {
   const [hovered, setHovered] = useState(false)
   return (
@@ -79,54 +81,63 @@ function ModuleCard({
       style={{
         background: '#fff',
         borderRadius: 16,
-        border: `1.5px solid ${border}`,
+        border: `1.5px solid ${hovered && !disabled ? navy : border}`,
         padding: '20px 22px',
         display: 'flex',
         flexDirection: 'row',
         gap: 18,
-        alignItems: 'flex-start',
+        alignItems: 'center',
         opacity: disabled ? 0.55 : 1,
         cursor: disabled ? 'default' : 'pointer',
-        boxShadow: hovered && !disabled
-          ? '0 8px 32px rgba(15,34,54,0.12)'
-          : '0 2px 8px rgba(15,34,54,0.05)',
-        transition: 'box-shadow 0.2s ease',
+        boxShadow: hovered && !disabled ? '0 4px 20px rgba(15,34,54,0.12)' : 'none',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
       }}
       onClick={!disabled ? onClick : undefined}
     >
-      {/* Icon */}
-      <div style={{
-        width: 52, height: 52, borderRadius: 14,
-        background: disabled ? '#f1f5f9' : navy,
-        fontSize: 22,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        {icon}
-      </div>
+      {/* Icon / Logo */}
+      {logo
+        ? <div style={{ width: 80, height: 52, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src={logo} alt="" style={{ height: 44, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.12))' }} />
+          </div>
+        : <div style={{
+            width: 52, height: 52, borderRadius: 14,
+            background: disabled ? '#f1f5f9' : navy,
+            fontSize: 22,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {icon}
+          </div>
+      }
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 3 }}>{title}</div>
-        <div style={{ fontSize: 13, color: muted, marginBottom: tags ? 8 : 0, lineHeight: 1.5 }}>{desc}</div>
-        {tags && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{tags}</div>}
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{title}</div>
+        <div style={{ fontSize: 13, color: muted, marginBottom: tags ? 8 : 0, lineHeight: 1.4 }}>{desc}</div>
+        {tags && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: progress != null ? 6 : 0 }}>{tags}</div>}
+        {progress != null && (
+          <div style={{ marginTop: 2 }}>
+            <div style={{ height: 4, background: border, borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${progress}%`, background: green, borderRadius: 4, transition: 'width 0.4s' }} />
+            </div>
+            <div style={{ fontSize: 10, color: muted, marginTop: 3, fontWeight: 600 }}>{progress}% completato</div>
+          </div>
+        )}
       </div>
 
       {/* CTA */}
-      <div style={{ flexShrink: 0, alignSelf: 'center' }}>
-        <span style={{
-          display: 'inline-block',
+      <div style={{ flexShrink: 0 }}>
+        <div style={{
           padding: '10px 18px',
           borderRadius: 10,
-          background: ctaColor,
-          color: '#fff',
+          background: disabled ? bg : ctaColor,
+          color: disabled ? muted : '#fff',
           fontSize: 13,
           fontWeight: 600,
           whiteSpace: 'nowrap',
-          cursor: disabled ? 'default' : 'pointer',
         }}>
-          {ctaLabel}
-        </span>
+          {ctaLabel}{!disabled && ' →'}
+        </div>
       </div>
     </div>
   )
@@ -206,19 +217,18 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', background: bg }}>
       {/* ── HEADER ── */}
-      <div style={{ background: navy, padding: '20px 24px 0' }}>
+      <div style={{ background: navy, padding: '20px 24px 28px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
           {/* Brand row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: red }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Coop Alleanza 3.0
+              Le Due Sicilie Srl
             </span>
           </div>
 
           {/* Greeting */}
-          <div style={{ fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: 4 }}>
             {isMaster ? 'Dashboard Master' : `Ciao, ${profile?.name || 'Utente'}`}
           </div>
           {!isMaster && pdvCode && (
@@ -229,50 +239,9 @@ export default function HomePage() {
           )}
 
           {/* Date */}
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>
             {today}
           </div>
-
-          {/* PDV progress strip */}
-          {!isMaster && (
-            <div style={{
-              background: 'rgba(255,255,255,0.07)',
-              borderRadius: '12px 12px 0 0',
-              padding: '14px 18px',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 20,
-            }}>
-              {/* Left: progress */}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.45)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Avanzamento settimana
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ flex: 1 }}>
-                    <ProgressBar pct={pct} color={green} height={5} />
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: green, flexShrink: 0 }}>{pct}%</span>
-                </div>
-              </div>
-
-              {/* Right: stats */}
-              <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: green, lineHeight: 1 }}>{done}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 3 }}>FATTE</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{todo}</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 3 }}>MANCANO</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Spacer for master (no strip) */}
-          {isMaster && <div style={{ height: 8 }} />}
         </div>
       </div>
 
@@ -283,20 +252,21 @@ export default function HomePage() {
         {!isMaster && (
           <>
             <ModuleCard
-              icon="🔄"
+              logo="/cc_logo_nobg.png"
               title="Confronta & Conviene"
               desc="Gestisci le coppie prodotto COOP vs IDM"
               tags={<>
                 <Tag text={`${done} fatte`} color="green" />
                 <Tag text={`${todo} da fare`} color="amber" />
               </>}
+              progress={pct}
               ctaLabel="Apri le coppie"
               ctaColor={navy}
               onClick={() => router.push('/protected/confronta-conviene')}
             />
             <ModuleCard
               icon="📊"
-              title="Cluster Analytics"
+              title="Assortimenti e Cluster"
               desc="Gestisci assortimenti per categoria e metratura"
               ctaLabel="Non disponibile"
               ctaColor={muted}
@@ -319,8 +289,8 @@ export default function HomePage() {
             />
             <ModuleCard
               icon="📊"
-              title="KPI Cluster"
-              desc="Monitora assortimenti cluster per categoria e metratura"
+              title="Assortimenti e Cluster"
+              desc="Assortimenti cluster per categoria e metratura"
               ctaLabel="Non disponibile"
               ctaColor={muted}
               disabled

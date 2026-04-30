@@ -53,13 +53,12 @@ export default function LoginPage() {
       {/* ── Navy branding strip ── */}
       <div style={{ background: navy, padding: '32px 24px 80px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: red }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Coop Alleanza 3.0
+            Le Due Sicilie Srl
           </span>
         </div>
         <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.8px', lineHeight: 1.1 }}>
-          Confronta<br />& Conviene
+          Hub Punto Vendita
         </div>
       </div>
 

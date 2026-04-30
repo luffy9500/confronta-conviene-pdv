@@ -267,9 +267,8 @@ export default function PDVCCPage() {
           <span style={{ display: 'block', width: 18, height: 2, borderRadius: 2, background: '#fff' }} />
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: red, flexShrink: 0 }} />
           <span style={{ fontSize: 14, fontWeight: 900, color: '#fff', letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Confronta &amp; Conviene
+            Hub Punto Vendita
           </span>
         </div>
         <button type="button" onClick={() => router.push('/protected/home')}
@@ -399,7 +398,43 @@ export default function PDVCCPage() {
           </span>
         </div>
 
-        {/* COOP row */}
+        {/* IDM row — top, neutral */}
+        <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+          {/* Image */}
+          <div style={{
+            width: 56, height: 56, borderRadius: 12, background: '#fff',
+            border: `1px solid ${border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+          }}>
+            {coppia.img_idm
+              ? <img src={coppia.img_idm} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
+            }
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ background: '#e2e8f0', color: '#475569', fontSize: 9, fontWeight: 900, padding: '2px 8px', borderRadius: 100 }}>IDM</span>
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: text, lineHeight: 1.3, marginBottom: 3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {coppia.name_idm || '—'}
+            </p>
+            <p style={{ fontSize: 10, color: subtle }}>EAN {coppia.ean_idm}</p>
+          </div>
+
+          {/* Price */}
+          <div style={{ fontSize: 22, fontWeight: 800, color: muted, flexShrink: 0 }}>
+            €{Number(coppia.price_idm).toFixed(2)}
+          </div>
+        </div>
+
+        {/* CC logo overlapping both product rows */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 2, margin: '-22px 0', pointerEvents: 'none' }}>
+          <img src="/cc_logo_nobg.png" alt="Confronta & Conviene" style={{ height: 80, objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.15))' }} />
+        </div>
+
+        {/* COOP row — bottom, warm red (conveniente) */}
         <div style={{ background: redLight, padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
           {/* Image */}
           <div style={{
@@ -428,46 +463,6 @@ export default function PDVCCPage() {
           {/* Price */}
           <div style={{ fontSize: 22, fontWeight: 800, color: red, flexShrink: 0 }}>
             €{Number(coppia.price_coop).toFixed(2)}
-          </div>
-        </div>
-
-        {/* VS divider */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 18px' }}>
-          <div style={{ flex: 1, borderTop: `1.5px dashed ${border}` }} />
-          <div style={{ width: 30, height: 30, borderRadius: '50%', background: navy, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, margin: '0 8px' }}>
-            VS
-          </div>
-          <div style={{ flex: 1, borderTop: `1.5px dashed ${border}` }} />
-        </div>
-
-        {/* IDM row */}
-        <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          {/* Image */}
-          <div style={{
-            width: 56, height: 56, borderRadius: 12, background: '#fff',
-            border: `1px solid ${border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
-          }}>
-            {coppia.img_idm
-              ? <img src={coppia.img_idm} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              : <span style={{ fontSize: 9, color: subtle }}>foto</span>
-            }
-          </div>
-
-          {/* Text */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <span style={{ background: '#e2e8f0', color: '#475569', fontSize: 9, fontWeight: 900, padding: '2px 8px', borderRadius: 100 }}>IDM</span>
-            </div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: text, lineHeight: 1.3, marginBottom: 3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-              {coppia.name_idm || '—'}
-            </p>
-            <p style={{ fontSize: 10, color: subtle }}>EAN {coppia.ean_idm}</p>
-          </div>
-
-          {/* Price */}
-          <div style={{ fontSize: 22, fontWeight: 800, color: muted, flexShrink: 0 }}>
-            €{Number(coppia.price_idm).toFixed(2)}
           </div>
         </div>
 

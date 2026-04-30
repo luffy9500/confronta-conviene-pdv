@@ -248,7 +248,6 @@ export default function GestioneUtenzePage() {
           {/* Brand row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: red }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Master
               </span>
@@ -689,7 +688,7 @@ export default function GestioneUtenzePage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Toggle checked={canSeeCluster} onChange={() => setCanSeeCluster(!canSeeCluster)} color="#8b5cf6" />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: text }}>Cluster Analytics</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: text }}>Assortimenti e Cluster</span>
                     </div>
                   </div>
 

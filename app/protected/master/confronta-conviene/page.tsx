@@ -130,7 +130,6 @@ export default function MasterCCPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               {/* Brand label */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: red }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   KPI Coppie
                 </span>
@@ -203,11 +202,9 @@ export default function MasterCCPage() {
                   </div>
                 </div>
 
-                {/* Right: 3×2 KPI grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {/* Right: 2×2 KPI grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <KpiCard label="PDV Attivi"     value={network.pdvCount}        bgColor={navy}     textColor="#fff"      borderColor="transparent" />
-                  <KpiCard label="Completati"     value={network.totalDone}        bgColor={greenBg}  textColor={greenDark}  borderColor={greenBorder} />
-                  <KpiCard label="In corso"       value={network.totalTodo}        bgColor={amberBg}  textColor={amberDark}  borderColor={amberBorder} />
                   <KpiCard label="Coppie totali"  value={network.totalCoppie ?? 0} bgColor="#f8fafc"  textColor={text}       borderColor={border} />
                   <KpiCard label="Completate"     value={network.totalDone}        bgColor={greenBg}  textColor={greenDark}  borderColor={greenBorder} />
                   <KpiCard label="In sospeso"     value={network.totalTodo}        bgColor={amberBg}  textColor={amberDark}  borderColor={amberBorder} />
