@@ -431,7 +431,7 @@ export default function PDVCCPage() {
 
         {/* CC logo overlapping both product rows */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 2, margin: '-22px 0', pointerEvents: 'none' }}>
-          <img src="/cc_logo_nobg.png" alt="Confronta & Conviene" style={{ height: 80, objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.15))' }} />
+          <img src="/cc_logo_nobg.png" alt="Confronta & Conviene" style={{ height: 56, objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.15))' }} />
         </div>
 
         {/* COOP row — bottom, warm red (conveniente) */}
@@ -452,7 +452,7 @@ export default function PDVCCPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
               <span style={{ background: red, color: '#fff', fontSize: 9, fontWeight: 900, padding: '2px 8px', borderRadius: 100 }}>COOP</span>
-              {saving && <span style={{ background: greenBg, color: greenDark, fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>{saving}</span>}
+              {saving && <span style={{ background: green, color: '#fff', fontSize: 13, fontWeight: 800, padding: '4px 10px', borderRadius: 100, boxShadow: '0 2px 8px rgba(34,197,94,0.35)' }}>{saving}</span>}
             </div>
             <p style={{ fontSize: 14, fontWeight: 600, color: text, lineHeight: 1.3, marginBottom: 3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               {coppia.name_coop || '—'}

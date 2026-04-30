@@ -74,6 +74,13 @@ function ModuleCard({
   progress?: number
 }) {
   const [hovered, setHovered] = useState(false)
+  const [isMob, setIsMob] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMob(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   return (
     <div
       onMouseEnter={() => !disabled && setHovered(true)}
@@ -82,11 +89,11 @@ function ModuleCard({
         background: '#fff',
         borderRadius: 16,
         border: `1.5px solid ${hovered && !disabled ? navy : border}`,
-        padding: '20px 22px',
+        padding: '16px 18px',
         display: 'flex',
-        flexDirection: 'row',
-        gap: 18,
-        alignItems: 'center',
+        flexDirection: isMob ? 'column' : 'row',
+        alignItems: isMob ? 'flex-start' : 'center',
+        gap: 12,
         opacity: disabled ? 0.55 : 1,
         cursor: disabled ? 'default' : 'pointer',
         boxShadow: hovered && !disabled ? '0 4px 20px rgba(15,34,54,0.12)' : 'none',
@@ -94,39 +101,42 @@ function ModuleCard({
       }}
       onClick={!disabled ? onClick : undefined}
     >
-      {/* Icon / Logo */}
-      {logo
-        ? <div style={{ width: 80, height: 52, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={logo} alt="" style={{ height: 44, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.12))' }} />
-          </div>
-        : <div style={{
-            width: 52, height: 52, borderRadius: 14,
-            background: disabled ? '#f1f5f9' : navy,
-            fontSize: 22,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            {icon}
-          </div>
-      }
-
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 13, color: muted, marginBottom: tags ? 8 : 0, lineHeight: 1.4 }}>{desc}</div>
-        {tags && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: progress != null ? 6 : 0 }}>{tags}</div>}
-        {progress != null && (
-          <div style={{ marginTop: 2 }}>
-            <div style={{ height: 4, background: border, borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${progress}%`, background: green, borderRadius: 4, transition: 'width 0.4s' }} />
+      {/* Logo + Text row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
+        {/* Icon / Logo */}
+        {logo
+          ? <div style={{ width: 70, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src={logo} alt="" style={{ height: 38, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.12))' }} />
             </div>
-            <div style={{ fontSize: 10, color: muted, marginTop: 3, fontWeight: 600 }}>{progress}% completato</div>
-          </div>
-        )}
+          : <div style={{
+              width: 48, height: 48, borderRadius: 12,
+              background: disabled ? '#f1f5f9' : navy,
+              fontSize: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {icon}
+            </div>
+        }
+
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{title}</div>
+          <div style={{ fontSize: 13, color: muted, marginBottom: tags ? 8 : 0, lineHeight: 1.4 }}>{desc}</div>
+          {tags && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: progress != null ? 6 : 0 }}>{tags}</div>}
+          {progress != null && (
+            <div style={{ marginTop: 2 }}>
+              <div style={{ height: 4, background: border, borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progress}%`, background: green, borderRadius: 4, transition: 'width 0.4s' }} />
+              </div>
+              <div style={{ fontSize: 10, color: muted, marginTop: 3, fontWeight: 600 }}>{progress}% completato</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* CTA */}
-      <div style={{ flexShrink: 0 }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{
           padding: '10px 18px',
           borderRadius: 10,
@@ -135,6 +145,8 @@ function ModuleCard({
           fontSize: 13,
           fontWeight: 600,
           whiteSpace: 'nowrap',
+          width: isMob ? '100%' : 'auto',
+          textAlign: 'center',
         }}>
           {ctaLabel}{!disabled && ' →'}
         </div>
