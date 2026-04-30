@@ -13,6 +13,17 @@ async function tryOFFbyEan(ean: string): Promise<string | null> {
   } catch { return null }
 }
 
+async function tryUPCitemdb(ean: string): Promise<string | null> {
+  try {
+    const r = await fetch(
+      `https://api.upcitemdb.com/prod/trial/lookup?upc=${ean}`,
+      { headers: { 'User-Agent': UA }, next: { revalidate: 86400 } }
+    )
+    const d = await r.json()
+    return d.items?.[0]?.images?.[0] ?? null
+  } catch { return null }
+}
+
 async function tryOFFbyName(name: string): Promise<string | null> {
   try {
     const q = encodeURIComponent(name)
@@ -30,8 +41,11 @@ export async function GET(req: NextRequest) {
   const name = req.nextUrl.searchParams.get('name') ?? ''
 
   if (ean) {
-    const url = await tryOFFbyEan(ean)
-    if (url) return NextResponse.json({ url })
+    const offUrl = await tryOFFbyEan(ean)
+    if (offUrl) return NextResponse.json({ url: offUrl })
+
+    const upcUrl = await tryUPCitemdb(ean)
+    if (upcUrl) return NextResponse.json({ url: upcUrl })
   }
 
   if (name) {
