@@ -28,19 +28,16 @@ const muted      = '#64748b'
 const subtle     = '#94a3b8'
 
 /* ─── ProductImage ─── */
-function ProductImage({ ean, name, borderColor }: { ean?: string; name?: string; borderColor: string }) {
+function ProductImage({ ean, borderColor }: { ean?: string; borderColor: string }) {
   const [imgUrl, setImgUrl] = useState<string | null | undefined>(undefined)
 
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (ean)  params.set('ean', ean.replace(/\D/g, ''))
-    if (name) params.set('name', name)
-    if (!params.toString()) { setImgUrl(null); return }
-    fetch(`/api/product-image?${params}`)
+    if (!ean) { setImgUrl(null); return }
+    fetch(`/api/product-image?ean=${ean.replace(/\D/g, '')}`)
       .then(r => r.json())
       .then(d => setImgUrl(d.url ?? null))
       .catch(() => setImgUrl(null))
-  }, [ean, name])
+  }, [ean])
 
   return (
     <div style={{
@@ -430,7 +427,7 @@ export default function PDVCCPage() {
 
         {/* IDM row — top, neutral */}
         <div style={{ background: '#f8fafc', padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <ProductImage ean={coppia.ean_idm} name={coppia.name_idm} borderColor={border} />
+          <ProductImage ean={coppia.ean_idm} borderColor={border} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -456,7 +453,7 @@ export default function PDVCCPage() {
 
         {/* COOP row — bottom, warm red (conveniente) */}
         <div style={{ background: redLight, padding: '14px 18px', display: 'flex', flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <ProductImage ean={coppia.ean_coop} name={coppia.name_coop} borderColor={redBorder} />
+          <ProductImage ean={coppia.ean_coop} borderColor={redBorder} />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
