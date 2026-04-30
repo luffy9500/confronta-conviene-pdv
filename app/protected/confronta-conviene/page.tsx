@@ -28,14 +28,18 @@ const muted      = '#64748b'
 const subtle     = '#94a3b8'
 
 /* ─── ProductImage ─── */
-function offUrl(ean: string): string {
-  const e = ean.replace(/\D/g, '').padStart(13, '0')
-  return `https://images.openfoodfacts.org/images/products/${e.slice(0,3)}/${e.slice(3,6)}/${e.slice(6,9)}/${e.slice(9)}/front_it.400.jpg`
-}
-
 function ProductImage({ ean, borderColor }: { ean?: string; borderColor: string }) {
-  const [failed, setFailed] = useState(false)
-  const url = ean && !failed ? offUrl(ean) : null
+  const [imgUrl, setImgUrl] = useState<string | null | undefined>(undefined)
+
+  useEffect(() => {
+    if (!ean) { setImgUrl(null); return }
+    const clean = ean.replace(/\D/g, '')
+    fetch(`https://world.openfoodfacts.org/api/v2/product/${clean}?fields=image_front_small_url`)
+      .then(r => r.json())
+      .then(d => setImgUrl(d.product?.image_front_small_url ?? null))
+      .catch(() => setImgUrl(null))
+  }, [ean])
+
   return (
     <div style={{
       width: 56, height: 56, borderRadius: 12, background: '#fff',
@@ -43,9 +47,9 @@ function ProductImage({ ean, borderColor }: { ean?: string; borderColor: string 
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0, overflow: 'hidden',
     }}>
-      {url
-        ? <img src={url} alt="" onError={() => setFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-        : <span style={{ fontSize: 9, color: subtle }}>foto</span>
+      {imgUrl
+        ? <img src={imgUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        : <span style={{ fontSize: 9, color: subtle }}>{imgUrl === undefined ? '' : 'foto'}</span>
       }
     </div>
   )
