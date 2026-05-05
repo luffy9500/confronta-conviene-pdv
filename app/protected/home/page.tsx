@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { UserProfile } from '@/lib/types'
-import { getPDVProgress } from './actions'
+import { getPDVProgress, getClusterProgress } from './actions'
 
 /* ─── Design tokens ─── */
 const navy     = '#0f2236'
@@ -163,6 +163,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [done, setDone] = useState(0)
   const [total, setTotal] = useState(0)
+  const [clusterDone, setClusterDone] = useState(0)
+  const [clusterTotal, setClusterTotal] = useState(0)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -187,10 +189,17 @@ export default function HomePage() {
         if (pdv?.code) setPdvCode(pdv.code)
         // Load progress for PDV via server action (admin client bypasses RLS)
         if (profileData.role === 'pdv' && profileData.pdv_id) {
-          const progress = await getPDVProgress(profileData.pdv_id)
+          const [progress, clusterProg] = await Promise.all([
+            getPDVProgress(profileData.pdv_id),
+            getClusterProgress(profileData.pdv_id),
+          ])
           if (progress.success) {
             setTotal(progress.total)
             setDone(progress.done)
+          }
+          if (clusterProg.success) {
+            setClusterTotal(clusterProg.total)
+            setClusterDone(clusterProg.done)
           }
         }
         setIsLoading(false)
@@ -279,10 +288,15 @@ export default function HomePage() {
             <ModuleCard
               icon="📊"
               title="Assortimenti e Cluster"
-              desc="Gestisci assortimenti per categoria e metratura"
-              ctaLabel="Non disponibile"
-              ctaColor={muted}
-              disabled
+              desc="Verifica l'assortimento prodotti per il tuo cluster"
+              tags={<>
+                <Tag text={`${clusterDone} presenti`} color="green" />
+                <Tag text={`${clusterTotal - clusterDone} da fare`} color="amber" />
+              </>}
+              progress={clusterTotal > 0 ? Math.round((clusterDone / clusterTotal) * 100) : 0}
+              ctaLabel="Apri cluster"
+              ctaColor={navyLight}
+              onClick={() => router.push('/protected/cluster/dashboard')}
             />
           </>
         )}
@@ -302,10 +316,10 @@ export default function HomePage() {
             <ModuleCard
               icon="📊"
               title="Assortimenti e Cluster"
-              desc="Assortimenti cluster per categoria e metratura"
-              ctaLabel="Non disponibile"
-              ctaColor={muted}
-              disabled
+              desc="Gestisci assortimenti e carica file Excel per categoria"
+              ctaLabel="Apri cluster"
+              ctaColor={navyLight}
+              onClick={() => router.push('/protected/master/cluster')}
             />
             <ModuleCard
               icon="👤"
